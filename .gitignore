@@ -1,0 +1,20 @@
+# Segredos
+.env
+
+# Áudio pago e saídas (backup separado do cache/)
+cache/
+saida/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+build/
+dist/
+
+# Sistema
+.DS_Store
+Thumbs.db

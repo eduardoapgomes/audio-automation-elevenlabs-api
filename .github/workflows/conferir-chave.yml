@@ -1,0 +1,20 @@
+name: Conferir chave ElevenLabs (não gasta créditos)
+
+# Rodar manualmente em Actions -> "Conferir chave ElevenLabs" -> Run workflow.
+# Precisa do segredo ELEVENLABS_API_KEY em Settings -> Secrets and variables -> Actions.
+on:
+  workflow_dispatch:
+
+jobs:
+  saldo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e .
+      - name: Consultar saldo
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: narrar saldo

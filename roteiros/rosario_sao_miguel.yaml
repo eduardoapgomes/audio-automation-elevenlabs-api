@@ -1,0 +1,141 @@
+# Rosário (Terço) de São Miguel Arcanjo
+#
+# ESTRUTURA DE EXEMPLO. Antes de gerar:
+#   1. Troque cada "TODO" pelo texto exato do livreto v28_FINAL.
+#   2. Confira a ordem das orações com o livreto e ajuste os segmentos.
+#   3. Cole o ID da voz em "voz" (descubra com: narrar vozes).
+# Enquanto houver TODO ou COLE_AQUI, `narrar gerar` se recusa a gastar créditos.
+
+id: rosario_sao_miguel
+titulo: Rosário de São Miguel Arcanjo
+
+voz: "COLE_AQUI_O_ID_DA_VOZ"        # a mesma voz já usada no canal
+modelo: eleven_multilingual_v2      # compare com eleven_flash_v2_5 (metade do preço)
+formato: mp3_44100_128
+ajustes:
+  stability: 0.6
+  similarity_boost: 0.75
+  style: 0
+  use_speaker_boost: true
+  speed: 0.95
+seed: 1                 # variantes usam seed, seed+1, seed+2...
+pausa_padrao: 1.2       # segundos de silêncio depois de cada fala
+
+# Quantas gravações diferentes de cada oração repetida, alternadas ao longo do vídeo,
+# para não soar como o mesmo clipe 27 vezes.
+variantes:
+  ave_maria: 3
+  pai_nosso: 2
+
+segmentos:
+  - id: abertura
+    texto: >
+      TODO: oração de abertura, exatamente como no livreto
+      (ex.: "Deus, vinde em nosso auxílio. Senhor, socorrei-nos e salvai-nos.")
+  - oracao: gloria
+    pausa_depois: 2
+
+  # 1ª saudação — coro dos Serafins
+  - id: saudacao_1
+    texto: >
+      TODO: 1ª saudação (coro dos Serafins), exatamente como no livreto
+  - oracao: pai_nosso
+  - oracao: ave_maria
+    repetir: 3
+    pausa_depois: 2.5
+
+  # 2ª saudação — coro dos Querubins
+  - id: saudacao_2
+    texto: >
+      TODO: 2ª saudação (coro dos Querubins), exatamente como no livreto
+  - oracao: pai_nosso
+  - oracao: ave_maria
+    repetir: 3
+    pausa_depois: 2.5
+
+  # 3ª saudação — coro dos Tronos
+  - id: saudacao_3
+    texto: >
+      TODO: 3ª saudação (coro dos Tronos), exatamente como no livreto
+  - oracao: pai_nosso
+  - oracao: ave_maria
+    repetir: 3
+    pausa_depois: 2.5
+
+  # 4ª saudação — coro dos Dominações
+  - id: saudacao_4
+    texto: >
+      TODO: 4ª saudação (coro dos Dominações), exatamente como no livreto
+  - oracao: pai_nosso
+  - oracao: ave_maria
+    repetir: 3
+    pausa_depois: 2.5
+
+  # 5ª saudação — coro dos Virtudes
+  - id: saudacao_5
+    texto: >
+      TODO: 5ª saudação (coro dos Virtudes), exatamente como no livreto
+  - oracao: pai_nosso
+  - oracao: ave_maria
+    repetir: 3
+    pausa_depois: 2.5
+
+  # 6ª saudação — coro dos Potestades
+  - id: saudacao_6
+    texto: >
+      TODO: 6ª saudação (coro dos Potestades), exatamente como no livreto
+  - oracao: pai_nosso
+  - oracao: ave_maria
+    repetir: 3
+    pausa_depois: 2.5
+
+  # 7ª saudação — coro dos Principados
+  - id: saudacao_7
+    texto: >
+      TODO: 7ª saudação (coro dos Principados), exatamente como no livreto
+  - oracao: pai_nosso
+  - oracao: ave_maria
+    repetir: 3
+    pausa_depois: 2.5
+
+  # 8ª saudação — coro dos Arcanjos
+  - id: saudacao_8
+    texto: >
+      TODO: 8ª saudação (coro dos Arcanjos), exatamente como no livreto
+  - oracao: pai_nosso
+  - oracao: ave_maria
+    repetir: 3
+    pausa_depois: 2.5
+
+  # 9ª saudação — coro dos Anjos
+  - id: saudacao_9
+    texto: >
+      TODO: 9ª saudação (coro dos Anjos), exatamente como no livreto
+  - oracao: pai_nosso
+  - oracao: ave_maria
+    repetir: 3
+    pausa_depois: 2.5
+
+  # Pais-Nossos finais
+  - id: pai_nosso_sao_miguel
+    texto: "TODO: anúncio do Pai-Nosso em honra de São Miguel, como no livreto"
+  - oracao: pai_nosso
+  - id: pai_nosso_sao_gabriel
+    texto: "TODO: anúncio do Pai-Nosso em honra de São Gabriel, como no livreto"
+  - oracao: pai_nosso
+  - id: pai_nosso_sao_rafael
+    texto: "TODO: anúncio do Pai-Nosso em honra de São Rafael, como no livreto"
+  - oracao: pai_nosso
+  - id: pai_nosso_anjo_da_guarda
+    texto: "TODO: anúncio do Pai-Nosso em honra do Anjo da Guarda, como no livreto"
+  - oracao: pai_nosso
+    pausa_depois: 2.5
+
+  # A oração final continua a antífona, na mesma tela (sem cena própria no vídeo)
+  - id: antifona
+    texto: >
+      TODO: antífona, exatamente como no livreto
+    pausa_depois: 1.5
+  - id: oracao_final
+    texto: >
+      TODO: oração final, exatamente como no livreto
