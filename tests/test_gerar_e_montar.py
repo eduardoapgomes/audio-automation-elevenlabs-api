@@ -150,6 +150,8 @@ class TestMontar(Base):
         self.assertEqual(falas[0]["inicio_s"], 0.0)
         self.assertAlmostEqual(falas[1]["inicio_s"], 1.5, places=2)
         self.assertEqual(falas[-1]["pausa_depois_s"], 0.0)
+        self.assertEqual(falas[1]["bloco"], "pai_nosso")
+        self.assertIn("cena", falas[0])
         with wave.open(str(saida / "narracao.wav")) as w:
             self.assertAlmostEqual(w.getnframes() / w.getframerate(), 8.0, places=2)
         srt = (saida / "legendas.srt").read_text(encoding="utf-8")

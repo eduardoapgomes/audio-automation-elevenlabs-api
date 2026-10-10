@@ -52,6 +52,16 @@ class TestCli(ComPastaTemporaria):
         self.assertEqual(codigo, 2)
         self.assertIn("inexistente", err)
 
+    def test_biblioteca_declarada_no_roteiro(self):
+        outra = self.dir / "bibliotecas" / "curso"
+        outra.mkdir(parents=True)
+        (outra / "vinheta.yaml").write_text("id: vinheta\ntexto: Bem-vindo ao curso.\n", encoding="utf-8")
+        r = self.escrever_roteiro(f"id: aula\nvoz: v\nbiblioteca: {outra}\n"
+                                  "segmentos:\n  - bloco: vinheta\n  - texto: Aula 1.\n")
+        codigo, out, err = rodar("plano", str(r), "--cache", str(self.cache_dir))
+        self.assertEqual(codigo, 0, err)
+        self.assertIn("vinheta", out)
+
     def test_carregar_env_nao_sobrescreve(self):
         env = self.dir / ".env"
         env.write_text('# comentário\nELEVENLABS_API_KEY="do-arquivo"\nOUTRA=1\n', encoding="utf-8")

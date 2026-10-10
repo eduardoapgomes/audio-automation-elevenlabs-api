@@ -64,6 +64,12 @@ narrar montar roteiros/rosario_sao_miguel.yaml # junta tudo numa trilha
 5. Ouça um Pai-Nosso e uma Ave-Maria antes de seguir. Se quiser comparar com o
    Flash (metade do preço), troque `modelo:` e rode de novo: o cache não mistura os dois.
 
+## Preparar um material novo (PDF, livreto, apostila...)
+
+Use o prompt padrão em [`docs/PROMPT.md`](docs/PROMPT.md): anexe o material, cole o
+prompt e o Claude devolve o roteiro, os blocos novos da biblioteca e um relatório
+com tudo que precisa da sua decisão. Serve para orações e para qualquer outro projeto.
+
 ## Como escrever um roteiro
 
 ```yaml
@@ -76,13 +82,19 @@ variantes: {ave_maria: 3}        # 3 gravações diferentes, alternadas
 segmentos:
   - id: abertura
     texto: "Texto livre, só deste vídeo."
-  - oracao: pai_nosso            # vem de oracoes/pai_nosso.yaml
-  - oracao: ave_maria
+  - bloco: pai_nosso             # vem de oracoes/pai_nosso.yaml ("oracao:" também vale)
+  - bloco: ave_maria
     repetir: 3
     pausa_depois: 2.5            # silêncio extra depois desta fala
   - texto: "Trecho mais lento"
     ajustes: {speed: 0.85}       # sobrescreve só aqui
+    pagina: 12                   # página do material (vai para o manifesto)
+    cena: imagem_p12             # imagem que aparece nesta fala (não muda o áudio)
 ```
+
+Para projetos que não são de oração, crie a biblioteca em `bibliotecas/<projeto>/`
+e declare `biblioteca: bibliotecas/<projeto>` no roteiro. Campos com nome errado
+dão erro, em vez de serem ignorados sem aviso.
 
 Pausas entre frases: use pontuação ou separe em segmentos. Quebras de linha
 dentro do texto são ignoradas (não mudam o áudio nem o hash).
@@ -90,13 +102,15 @@ dentro do texto são ignoradas (não mudam o áudio nem o hash).
 ## Onde fica o quê
 
 ```
-oracoes/        biblioteca de orações (vai para o Git)
+oracoes/        biblioteca de orações do canal (vai para o Git)
+bibliotecas/    bibliotecas de outros projetos (vai para o Git)
 roteiros/       um YAML por vídeo ou Short (vai para o Git)
 cache/          áudios pagos, nome = hash (NÃO vai para o Git — faça backup!)
 saida/          trilhas montadas (NÃO vai para o Git, dá para refazer)
 src/narrador/   o código
 tests/          testes com API simulada (nunca gastam créditos)
 docs/PLANO.md   decisões de arquitetura e roadmap
+docs/PROMPT.md  prompt padrão para transformar um material em roteiro
 ```
 
 **Backup do `cache/`:** é o único lugar onde ficam os áudios já pagos. Copie a

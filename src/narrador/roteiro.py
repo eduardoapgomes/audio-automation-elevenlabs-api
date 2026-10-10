@@ -33,6 +33,16 @@ MARCADORES_PENDENTES = ("TODO", "COLE_AQUI")
 
 FORMATO_PADRAO = "mp3_44100_128"
 
+CAMPOS_ROTEIRO = {
+    "id", "titulo", "descricao", "fonte", "biblioteca", "voz", "modelo", "formato", "ajustes",
+    "idioma", "seed", "pausa_padrao", "variantes", "segmentos",
+}
+# "bloco" é o nome genérico; "oracao" continua valendo como sinônimo.
+CAMPOS_SEGMENTO = {
+    "id", "texto", "bloco", "oracao", "repetir", "voz", "modelo", "formato", "ajustes", "idioma",
+    "pausa_depois", "cena", "pagina", "nota",
+}
+
 
 class ErroRoteiro(ValueError):
     pass
@@ -50,9 +60,12 @@ class Fala:
     seed: int | None
     idioma: str | None
     pausa_depois: float
-    oracao: str | None = None
+    oracao: str | None = None  # id do bloco da biblioteca (oração ou qualquer texto recorrente)
     variante: int | None = None
     total_variantes: int | None = None
+    # Só para sincronizar com o vídeo; NÃO entram na chave do cache (não mudam o som).
+    cena: str | None = None
+    pagina: str | None = None
 
     @property
     def chave(self) -> str:
@@ -75,20 +88,21 @@ class Roteiro:
     titulo: str
     falas: list[Fala]
     pendencias: list[str] = field(default_factory=list)
+    biblioteca: str | None = None
 
 
 def carregar_biblioteca(pasta: str | Path) -> dict[str, dict[str, Any]]:
     pasta = Path(pasta)
     if not pasta.is_dir():
-        raise ErroRoteiro(f"Pasta da biblioteca de orações não encontrada: {pasta}")
+        raise ErroRoteiro(f"Pasta da biblioteca não encontrada: {pasta}")
     oracoes: dict[str, dict[str, Any]] = {}
     for arq in sorted(pasta.glob("*.y*ml")):
         dados = yaml.safe_load(arq.read_text(encoding="utf-8")) or {}
         oid = str(dados.get("id") or arq.stem)
         if "texto" not in dados or not str(dados["texto"]).strip():
-            raise ErroRoteiro(f"Oração '{oid}' ({arq.name}) está sem texto.")
+            raise ErroRoteiro(f"Bloco '{oid}' ({arq.name}) está sem texto.")
         if oid in oracoes:
-            raise ErroRoteiro(f"Oração '{oid}' aparece duas vezes na biblioteca.")
+            raise ErroRoteiro(f"Bloco '{oid}' aparece duas vezes na biblioteca.")
         oracoes[oid] = dados
     return oracoes
 
@@ -97,9 +111,26 @@ def _pendencias_do_texto(rotulo: str, texto: str) -> list[str]:
     return [f"{rotulo}: texto ainda com marcador '{m}'" for m in MARCADORES_PENDENTES if m in texto]
 
 
+def ler_yaml_roteiro(caminho: str | Path) -> dict[str, Any]:
+    dados = yaml.safe_load(Path(caminho).read_text(encoding="utf-8")) or {}
+    if not isinstance(dados, dict):
+        raise ErroRoteiro(f"{caminho}: o roteiro precisa ser um mapa (chave: valor).")
+    return dados
+
+
+def _validar_campos(onde: str, dados: dict[str, Any], permitidos: set[str]) -> None:
+    desconhecidos = sorted(set(map(str, dados)) - permitidos)
+    if desconhecidos:
+        raise ErroRoteiro(
+            f"{onde}: campo(s) desconhecido(s) {', '.join(desconhecidos)}. "
+            f"Permitidos: {', '.join(sorted(permitidos))}."
+        )
+
+
 def carregar_roteiro(caminho: str | Path, biblioteca: dict[str, dict[str, Any]]) -> Roteiro:
     caminho = Path(caminho)
-    dados = yaml.safe_load(caminho.read_text(encoding="utf-8")) or {}
+    dados = ler_yaml_roteiro(caminho)
+    _validar_campos("roteiro", dados, CAMPOS_ROTEIRO)
 
     rid = str(dados.get("id") or caminho.stem)
     titulo = str(dados.get("titulo") or rid)
@@ -123,7 +154,7 @@ def carregar_roteiro(caminho: str | Path, biblioteca: dict[str, dict[str, Any]])
 
     for oid, n in variantes_por_oracao.items():
         if oid not in biblioteca:
-            raise ErroRoteiro(f"'variantes' cita a oração '{oid}', que não está na biblioteca.")
+            raise ErroRoteiro(f"'variantes' cita o bloco '{oid}', que não está na biblioteca.")
         if n < 1:
             raise ErroRoteiro(f"'variantes' de '{oid}' precisa ser 1 ou mais.")
 
@@ -133,10 +164,14 @@ def carregar_roteiro(caminho: str | Path, biblioteca: dict[str, dict[str, Any]])
     for i, seg in enumerate(segmentos, start=1):
         if not isinstance(seg, dict):
             raise ErroRoteiro(f"Segmento {i} precisa ser um mapa (chave: valor).")
+        _validar_campos(f"Segmento {i}", seg, CAMPOS_SEGMENTO)
+        if "bloco" in seg and "oracao" in seg:
+            raise ErroRoteiro(f"Segmento {i}: use 'bloco' ou 'oracao', não os dois.")
+        ref_bloco = seg.get("bloco", seg.get("oracao"))
         tem_texto = "texto" in seg
-        tem_oracao = "oracao" in seg
+        tem_oracao = ref_bloco is not None
         if tem_texto == tem_oracao:
-            raise ErroRoteiro(f"Segmento {i}: use exatamente um de 'texto' ou 'oracao'.")
+            raise ErroRoteiro(f"Segmento {i}: use exatamente um de 'texto' ou 'bloco'.")
 
         repetir = int(seg.get("repetir", 1))
         if repetir < 1:
@@ -148,11 +183,13 @@ def carregar_roteiro(caminho: str | Path, biblioteca: dict[str, dict[str, Any]])
         ajustes = {**ajustes_padrao, **dict(seg.get("ajustes") or {})}
         idioma = seg.get("idioma", idioma_padrao)
         pausa = float(seg.get("pausa_depois", pausa_padrao))
+        cena = None if seg.get("cena") is None else str(seg["cena"])
+        pagina = None if seg.get("pagina") is None else str(seg["pagina"])
 
         if tem_oracao:
-            oid = str(seg["oracao"])
+            oid = str(ref_bloco)
             if oid not in biblioteca:
-                raise ErroRoteiro(f"Segmento {i}: oração '{oid}' não existe na biblioteca.")
+                raise ErroRoteiro(f"Segmento {i}: bloco '{oid}' não existe na biblioteca.")
             texto = str(biblioteca[oid]["texto"])
             rotulo_base = str(seg.get("id") or oid)
         else:
@@ -198,7 +235,11 @@ def carregar_roteiro(caminho: str | Path, biblioteca: dict[str, dict[str, Any]])
                     oracao=oid,
                     variante=variante,
                     total_variantes=total,
+                    cena=cena,
+                    pagina=pagina,
                 )
             )
 
-    return Roteiro(id=rid, titulo=titulo, falas=falas, pendencias=pendencias)
+    bib = dados.get("biblioteca")
+    return Roteiro(id=rid, titulo=titulo, falas=falas, pendencias=pendencias,
+                   biblioteca=None if bib is None else str(bib))

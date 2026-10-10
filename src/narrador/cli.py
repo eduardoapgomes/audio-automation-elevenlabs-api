@@ -19,7 +19,7 @@ from .elevenlabs import ClienteElevenLabs, ErroAPI
 from .gerar import ErroGeracao, gerar_faltantes
 from .montagem import ErroMontagem, montar
 from .plano import montar_plano, relatorio
-from .roteiro import ErroRoteiro, carregar_biblioteca, carregar_roteiro
+from .roteiro import ErroRoteiro, carregar_biblioteca, carregar_roteiro, ler_yaml_roteiro
 
 
 def carregar_env(caminho: str | Path = ".env") -> None:
@@ -39,8 +39,15 @@ def _cliente() -> ClienteElevenLabs:
     return ClienteElevenLabs(os.environ.get("ELEVENLABS_API_KEY", ""))
 
 
+def _pasta_biblioteca(args: argparse.Namespace) -> str:
+    """--biblioteca na linha de comando > 'biblioteca:' no roteiro > pasta 'oracoes'."""
+    if args.biblioteca:
+        return args.biblioteca
+    return str(ler_yaml_roteiro(args.roteiro).get("biblioteca") or "oracoes")
+
+
 def _plano(args: argparse.Namespace):
-    biblioteca = carregar_biblioteca(args.biblioteca)
+    biblioteca = carregar_biblioteca(_pasta_biblioteca(args))
     roteiro = carregar_roteiro(args.roteiro, biblioteca)
     return montar_plano(roteiro, Cache(args.cache))
 
@@ -118,7 +125,9 @@ def criar_parser() -> argparse.ArgumentParser:
     def com_roteiro(nome: str, ajuda: str) -> argparse.ArgumentParser:
         sp = sub.add_parser(nome, help=ajuda)
         sp.add_argument("roteiro", help="arquivo YAML do roteiro")
-        sp.add_argument("--biblioteca", default="oracoes", help="pasta das orações (padrão: oracoes)")
+        sp.add_argument("--biblioteca", default=None,
+                        help="pasta dos blocos reutilizáveis (padrão: campo 'biblioteca' do roteiro, "
+                             "ou 'oracoes')")
         sp.add_argument("--cache", default="cache", help="pasta do cache de áudio (padrão: cache)")
         return sp
 

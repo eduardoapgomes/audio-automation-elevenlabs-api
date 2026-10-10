@@ -70,7 +70,7 @@ def relatorio(plano: Plano) -> str:
     ]
     if plano.caracteres_sem_reuso:
         economia = 1 - plano.caracteres_unicos / plano.caracteres_sem_reuso
-        linhas.append(f"  Economia pela biblioteca de orações: {economia:.0%}")
+        linhas.append(f"  Economia pela biblioteca: {economia:.0%}")
 
     if plano.saldo:
         usado = plano.saldo.get("character_count")

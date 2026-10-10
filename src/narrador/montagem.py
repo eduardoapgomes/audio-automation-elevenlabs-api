@@ -100,8 +100,10 @@ def montar(plano: Plano, cache: Cache, pasta_saida: str | Path, mp3: bool = True
             itens.append({
                 "ordem": fala.ordem,
                 "rotulo": fala.rotulo,
-                "oracao": fala.oracao,
+                "bloco": fala.oracao,
                 "variante": fala.variante,
+                "cena": fala.cena,
+                "pagina": fala.pagina,
                 "texto": normalizar_texto(fala.texto),
                 "arquivo_cache": str(cache.caminho(chave, fala.ext)),
                 "inicio_s": round(inicio, 3),

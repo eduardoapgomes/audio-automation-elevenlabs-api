@@ -96,6 +96,49 @@ class TestRoteiro(ComPastaTemporaria):
             """)
 
 
+    def test_bloco_e_sinonimo_de_oracao(self):
+        r = self.carregar("""
+            voz: v
+            segmentos:
+              - bloco: ave_maria
+              - oracao: ave_maria
+        """)
+        self.assertEqual(r.falas[0].chave, r.falas[1].chave)
+        self.assertEqual(r.falas[0].oracao, "ave_maria")
+
+    def test_bloco_e_oracao_juntos_e_erro(self):
+        with self.assertRaises(ErroRoteiro):
+            self.carregar("""
+                voz: v
+                segmentos:
+                  - bloco: ave_maria
+                    oracao: ave_maria
+            """)
+
+    def test_campo_com_erro_de_digitacao_e_erro(self):
+        for conteudo in ("voz: v\npausa_padao: 1\nsegmentos:\n  - texto: x\n",
+                         "voz: v\nsegmentos:\n  - texto: x\n    pausa_dpois: 2\n"):
+            with self.subTest(conteudo=conteudo), self.assertRaises(ErroRoteiro):
+                self.carregar(conteudo)
+
+    def test_cena_e_pagina_nao_mudam_o_audio(self):
+        r = self.carregar("""
+            voz: v
+            biblioteca: bibliotecas/teste
+            segmentos:
+              - texto: "Igual."
+                cena: capa
+                pagina: 1
+              - texto: "Igual."
+                cena: outra
+                pagina: "2-3"
+                nota: "só para humanos"
+        """)
+        self.assertEqual(r.falas[0].chave, r.falas[1].chave)
+        self.assertEqual((r.falas[0].cena, r.falas[0].pagina), ("capa", "1"))
+        self.assertEqual(r.falas[1].pagina, "2-3")
+        self.assertEqual(r.biblioteca, "bibliotecas/teste")
+
 class TestExemploDoRepositorio(unittest.TestCase):
     def test_exemplo_do_rosario_carrega(self):
         from pathlib import Path
@@ -107,6 +150,22 @@ class TestExemploDoRepositorio(unittest.TestCase):
         self.assertEqual(len(aves), 27)
         self.assertEqual(len(pais), 13)
         self.assertTrue(r.pendencias)  # o exemplo vem com TODO de propósito
+
+    def test_modelo_do_prompt_e_valido(self):
+        """O roteiro de exemplo em docs/PROMPT.md precisa continuar aceito pelo código."""
+        import re
+        import tempfile
+        from pathlib import Path
+        raiz = Path(__file__).resolve().parents[1]
+        doc = (raiz / "docs" / "PROMPT.md").read_text(encoding="utf-8")
+        blocos = re.findall(r"```yaml\n(.*?)```", doc, flags=re.S)
+        roteiro_yaml = next(b for b in blocos if "segmentos:" in b)
+        with tempfile.TemporaryDirectory() as tmp:
+            arq = Path(tmp) / "modelo.yaml"
+            arq.write_text(roteiro_yaml, encoding="utf-8")
+            r = carregar_roteiro(arq, carregar_biblioteca(raiz / "oracoes"))
+        self.assertEqual(len(r.falas), 6)
+        self.assertEqual(r.falas[-1].ajustes["speed"], 0.9)
 
 
 if __name__ == "__main__":

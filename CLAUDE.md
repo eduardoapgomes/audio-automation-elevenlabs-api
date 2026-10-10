@@ -17,6 +17,10 @@ Leia `README.md` (uso) e `docs/PLANO.md` (decisões e roadmap) antes de mudar al
 - `cache/`, `saida/` e `.env` ficam fora do Git.
 - Dependências: só PyYAML em produção. Prefira a biblioteca padrão.
 
+- Quando o Eduardo mandar um material (PDF etc.) para virar narração, siga
+  `docs/PROMPT.md` à risca. Nunca rode `narrar gerar`.
+- Nunca altere um bloco existente da biblioteca: crie outro com sufixo.
+
 ## Comandos
 
 ```bash

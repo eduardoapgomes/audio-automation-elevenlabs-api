@@ -39,7 +39,7 @@ def _metadados(fala: Fala, headers: dict[str, str]) -> dict:
     return {
         "texto": normalizar_texto(fala.texto),
         "rotulo": fala.rotulo,
-        "oracao": fala.oracao,
+        "bloco": fala.oracao,
         "variante": fala.variante,
         "voz": fala.voz,
         "modelo": fala.modelo,
